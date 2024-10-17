@@ -1,93 +1,352 @@
-# Core Infrastructure
+# ArgoCD on Amazon EKS
 
+This tutorial guides you through deploying an Amazon EKS cluster with addons configured via ArgoCD, employing the [GitOps Bridge Pattern](https://github.com/gitops-bridge-dev).
 
+<img src="https://raw.githubusercontent.com/aws-ia/terraform-aws-eks-blueprints/main/patterns/gitops/getting-started-argocd/static/gitops-bridge.drawio.png" width=100%>
 
-## Getting started
+The [GitOps Bridge Pattern](https://github.com/gitops-bridge-dev) enables Kubernetes administrators to utilize Infrastructure as Code (IaC) and GitOps tools for deploying Kubernetes Addons and Workloads. Addons often depend on Cloud resources that are external to the cluster. The configuration metadata for these external resources is required by the Addons' Helm charts. While IaC is used to create these cloud resources, it is not used to install the Helm charts. Instead, the IaC tool stores this metadata either within GitOps resources in the cluster or in a Git repository. The GitOps tool then extracts these metadata values and passes them to the Helm chart during the Addon installation process. This mechanism forms the bridge between IaC and GitOps, hence the term "GitOps Bridge."
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Additional examples available on the [GitOps Bridge Pattern](https://github.com/gitops-bridge-dev):
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+- [argocd-ingress](https://github.com/gitops-bridge-dev/gitops-bridge/tree/main/argocd/iac/terraform/examples/eks/argocd-ingress)
+- [aws-secrets-manager](https://github.com/gitops-bridge-dev/gitops-bridge/tree/main/argocd/iac/terraform/examples/eks/aws-secrets-manager)
+- [crossplane](https://github.com/gitops-bridge-dev/gitops-bridge/tree/main/argocd/iac/terraform/examples/eks/crossplane)
+- [external-secrets](https://github.com/gitops-bridge-dev/gitops-bridge/tree/main/argocd/iac/terraform/examples/eks/external-secrets)
+- [multi-cluster/distributed](https://github.com/gitops-bridge-dev/gitops-bridge/tree/main/argocd/iac/terraform/examples/eks/multi-cluster/distributed)
+- [multi-cluster/hub-spoke](https://github.com/gitops-bridge-dev/gitops-bridge/tree/main/argocd/iac/terraform/examples/eks/multi-cluster/hub-spoke)
+- [multi-cluster/hub-spoke-shared](https://github.com/gitops-bridge-dev/gitops-bridge/tree/main/argocd/iac/terraform/examples/eks/multi-cluster/hub-spoke-shared)
+- [private-git](https://github.com/gitops-bridge-dev/gitops-bridge/tree/main/argocd/iac/terraform/examples/eks/private-git)
 
-## Add your files
+## Prerequisites
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+Before you begin, make sure you have the following command line tools installed:
 
+- git
+- terraform
+- kubectl
+- argocd
+
+## (Optional) Fork the GitOps git repositories
+
+See the appendix section [Fork GitOps Repositories](#fork-gitops-repositories) for more info on the terraform variables to override.
+
+## Deploy the EKS Cluster
+
+Initialize Terraform and deploy the EKS cluster:
+
+```shell
+terraform init
+terraform apply -target="module.vpc" -auto-approve
+terraform apply -target="module.eks" -auto-approve
+terraform apply -auto-approve
 ```
-cd existing_repo
-git remote add origin http://git.inanna.omnimark.com/it/core-infrastructure.git
-git branch -M main
-git push -uf origin main
+
+To retrieve `kubectl` config, execute the terraform output command:
+
+```shell
+terraform output -raw configure_kubectl
 ```
 
-## Integrate with your tools
+The expected output will have two lines you run in your terminal
 
-- [ ] [Set up project integrations](http://git.inanna.omnimark.com/it/core-infrastructure/-/settings/integrations)
+```text
+export KUBECONFIG="/tmp/gitops-it-core"output "configure_kubectl" {
+  description = "Configure kubectl: make sure you're logged in with the correct AWS profile and run the following command to update your kubeconfig"
+  value       = <<-EOT
+    export KUBECONFIG="/tmp/${module.eks.cluster_name}"
+    aws eks --region ${local.region} update-kubeconfig --name ${module.eks.cluster_name}
+  EOT
+}
+aws eks --region us-east-1 update-kubeconfig --name gitops-it-core
+```
 
-## Collaborate with your team
+>The first line sets the `KUBECONFIG` environment variable to a temporary file
+that includes the cluster name. The second line uses the `aws` CLI to populate
+that temporary file with the `kubectl` configuration. This approach offers the
+advantage of not altering your existing `kubectl` context, allowing you to work
+in other terminal windows without interference.
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+Terraform will add GitOps Bridge Metadata to the ArgoCD secret.
+The annotations contain metadata for the addons' Helm charts and ArgoCD ApplicationSets.
 
-## Test and Deploy
+```shell
+kubectl get secret -n argocd -l argocd.argoproj.io/secret-type=cluster -o json | jq '.items[0].metadata.annotations'
+```
 
-Use the built-in continuous integration in GitLab.
+The output looks like the following:
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+```json
+{
+  "addons_repo_basepath": "argocd/",
+  "addons_repo_path": "bootstrap/control-plane/addons",
+  "addons_repo_revision": "main",
+  "addons_repo_url": "https://github.com/stilo-corp/eks-blueprints-add-ons",
+  "aws_account_id": "0123456789",
+  "aws_cluster_name": "gitops-it-core",
+  "aws_load_balancer_controller_iam_role_arn": "arn:aws:iam::0123456789:role/alb-controller-20241017134812747300000004",
+  "aws_load_balancer_controller_namespace": "kube-system",
+  "aws_load_balancer_controller_service_account": "aws-load-balancer-controller-sa",
+  "aws_region": "us-east-1",
+  "aws_vpc_id": "vpc-001d3f00151bbb731",
+  "cluster_name": "in-cluster",
+  "environment": "dev",
+  "workload_repo_basepath": "argocd/",
+  "workload_repo_path": "k8s",
+  "workload_repo_revision": "main",
+  "workload_repo_url": "https://github.com/stilo-corp/it-core-infrastructure"
+}
+```
 
-***
+The labels offer a straightforward way to enable or disable an addon in ArgoCD for the cluster.
 
-# Editing this README
+```shell
+kubectl get secret -n argocd -l argocd.argoproj.io/secret-type=cluster -o json | jq '.items[0].metadata.labels' | grep -v false | jq .
+```
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+The output looks like the following:
 
-## Suggestions for a good README
+```json
+{
+  "argocd.argoproj.io/secret-type": "cluster",
+  "aws_cluster_name": "gitops-it-core",
+  "cluster_name": "in-cluster",
+  "enable_argocd": "true",
+  "enable_aws_load_balancer_controller": "true",
+  "enable_metrics_server": "true",
+  "environment": "dev",
+  "kubernetes_version": "1.31"
+}
+```
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+## Deploy the Addons
 
-## Name
-Choose a self-explaining name for your project.
+Bootstrap the addons using ArgoCD:
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+```shell
+kubectl apply -f argocd/bootstrap/addons.yaml
+```
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+### Monitor GitOps Progress for Addons
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+Wait until all the ArgoCD applications' `HEALTH STATUS` is `Healthy`.
+Use `Ctrl+C` or `Cmd+C` to exit the `watch` command. ArgoCD Applications
+can take a couple of minutes in order to achieve the Healthy status.
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+```shell
+kubectl get applications -n argocd -w
+```
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+The expected output should look like the following:
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+```text
+NAME                                            SYNC STATUS   HEALTH STATUS
+addon-in-cluster-argo-cd                        Synced        Healthy
+addon-in-cluster-aws-load-balancer-controller   Synced        Healthy
+addon-in-cluster-metrics-server                 Synced        Healthy
+cluster-addons                                  Synced        Healthy
+```
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+### Verify the Addons
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+Verify that the addons are ready:
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+```shell
+kubectl get deployment -n kube-system \
+  aws-load-balancer-controller \
+  metrics-server
+kubectl get deploy -n argocd \
+  argo-cd-argocd-applicationset-controller \
+  argo-cd-argocd-repo-server \
+  argo-cd-argocd-server
+```
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+The expected output should look like the following:
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+```text
+NAME                           READY   UP-TO-DATE   AVAILABLE   AGE
+aws-load-balancer-controller   2/2     2            2           2m45s
+metrics-server                 1/1     1            1           2m39s
+NAME                                       READY   UP-TO-DATE   AVAILABLE   AGE
+argo-cd-argocd-applicationset-controller   1/1     1            1           40m
+argo-cd-argocd-repo-server                 1/1     1            1           40m
+argo-cd-argocd-server                      1/1     1            1           40m
+```
 
-## License
-For open source projects, say how it is licensed.
+## (Optional) Access ArgoCD
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Access to the ArgoCD's UI is completely optional, if you want to do it,
+run the commands shown in the Terraform output as the example below:
+
+```shell
+terraform output -raw access_argocd
+```
+
+The expected output should contain the `kubectl` config followed by `kubectl` command to retrieve
+the URL, username, password to login into ArgoCD UI or CLI.
+
+```text
+echo "ArgoCD Username: admin"
+echo "ArgoCD Password: $(kubectl get secrets argocd-initial-admin-secret -n argocd --template="{{index .data.password | base64decode}}")"
+echo "ArgoCD URL: https://$(kubectl get svc -n argocd argo-cd-argocd-server -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
+```
+
+## Deploy the Workloads
+
+Deploy a sample application located in [k8s/game-2048.yaml](k8s/game-2048.yaml) using ArgoCD:
+
+```shell
+kubectl apply -f bootstrap/workloads.yaml
+```
+
+### Monitor GitOps Progress for Workloads
+
+Wait until all the ArgoCD applications' `HEALTH STATUS` is `Healthy`.
+Use `Ctrl+C` or `Cmd+C` to exit the `watch` command. ArgoCD Applications
+can take a couple of minutes in order to achieve the Healthy status.
+
+```shell
+watch kubectl get -n argocd applications workloads
+```
+
+The expected output should look like the following:
+
+```text
+NAME        SYNC STATUS   HEALTH STATUS
+workloads   Synced        Healthy
+```
+
+### Verify the Application
+
+Verify that the application configuration is present and the pod is running:
+
+```shell
+kubectl get -n game-2048 deployments,service,ep,ingress
+```
+
+The expected output should look like the following:
+
+```text
+NAME                        READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/game-2048   1/1     1            1           7h59m
+
+NAME                TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+service/game-2048   ClusterIP   172.20.155.47   <none>        80/TCP    7h59m
+
+NAME                  ENDPOINTS       AGE
+endpoints/game-2048   10.0.13.64:80   7h59m
+
+NAME                CLASS   HOSTS   ADDRESS                              PORTS   AGE
+ingress/game-2048   alb     *       k8s-<>.us-east-1.elb.amazonaws.com   80      7h59m
+```
+
+AWS Load Balancer can take a couple of minutes in order to be created.
+
+Run the following command and wait until and event for ingress `game-2048` contains `Successfully reconciled`.
+Use `Ctrl+C` or `Cmd+C`to exit the `watch` command.
+
+```shell
+kubectl events -n game-2048 --for ingress/game-2048 --watch
+```
+
+The expected output should look like the following:
+
+```text
+LAST SEEN   TYPE     REASON                   OBJECT              MESSAGE
+11m         Normal   SuccessfullyReconciled   Ingress/game-2048   Successfully reconciled
+```
+
+### Access the Application using AWS Load Balancer
+
+Verify the application endpoint health using `wget`:
+
+```shell
+kubectl exec -n game-2048 deploy/game-2048 -- \
+wget -S --spider $(kubectl get -n game-2048 ingress game-2048 -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+```
+
+The expected output should look like the following:
+
+```text
+  HTTP/1.1 200 OK
+  Date: Wed, 01 Nov 2023 22:44:57 GMT
+  Content-Type: text/html
+  Content-Length: 3988
+```
+
+>A success response should contain `HTTP/1.1 200 OK`.
+
+Retrieve the ingress URL to access the application in your local web browser.
+
+```shell
+echo "Application URL: http://$(kubectl get -n game-2048 ingress game-2048 -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
+```
+
+### Container Metrics
+
+Check the application's CPU and memory metrics:
+
+```shell
+kubectl top pods -n game-2048
+```
+
+The expected output should look like the following:
+
+```text
+NAME                         CPU(cores)   MEMORY(bytes)
+game-2048-66fb78b995-h1bjv   1m           2Mi
+```
+
+Check the CPU and memory metrics for all pods for Addons and Workloads:
+
+```shell
+kubectl top pods -A
+```
+
+The expected output should look like the following:
+
+```text
+NAMESPACE     NAME                                                        CPU(cores)   MEMORY(bytes)
+argocd        argo-cd-argocd-application-controller-0                     43m          138Mi
+argocd        argo-cd-argocd-applicationset-controller-5db688844c-79skp   1m           25Mi
+argocd        argo-cd-argocd-dex-server-cd48d7bc-x7flf                    1m           16Mi
+argocd        argo-cd-argocd-notifications-controller-7d7ccc6b9d-dg9r6    1m           17Mi
+argocd        argo-cd-argocd-redis-7f89c69877-6m2cj                       2m           3Mi
+argocd        argo-cd-argocd-repo-server-644b9b5668-m9ddg                 8m           62Mi
+argocd        argo-cd-argocd-server-57cbbd6f94-lp4wx                      2m           26Mi
+game-2048     game-2048-66fb78b995-h1bjv                                  1m           2Mi
+kube-system   aws-load-balancer-controller-8488df87c-4nxv6                2m           26Mi
+kube-system   aws-load-balancer-controller-8488df87c-zs4p6                1m           19Mi
+kube-system   aws-node-ck6vq                                              3m           57Mi
+kube-system   aws-node-fv2sg                                              3m           56Mi
+kube-system   coredns-59754897cf-5r2xp                                    1m           13Mi
+kube-system   coredns-59754897cf-fn7jb                                    1m           13Mi
+kube-system   kube-proxy-lz2dc                                            1m           11Mi
+kube-system   kube-proxy-pd2lm                                            1m           12Mi
+kube-system   metrics-server-5b76987ff-5g1sv                              4m           17Mi
+```
+
+## Destroy the EKS Cluster
+
+To tear down all the resources and the EKS cluster, run the following command:
+
+```shell
+./destroy.sh
+```
+
+## Appendix
+
+## Fork GitOps Repositories
+
+To modify the `values.yaml` file for addons or the workload manifest files (.ie yaml), you'll need to fork two repositories: [aws-samples/eks-blueprints-add-ons](https://github.com/aws-samples/eks-blueprints-add-ons) for addons and [github.com/aws-ia/terraform-aws-eks-blueprints](https://github.com/aws-ia/terraform-aws-eks-blueprints) for workloads located in this pattern directory.
+
+After forking, update the following environment variables to point to your forks, replacing the default values.
+
+```shell
+export TF_VAR_gitops_addons_org=https://github.com/stilo-corp
+export TF_VAR_gitops_addons_repo=eks-blueprints-add-ons
+export TF_VAR_gitops_addons_revision=main
+
+export TF_VAR_gitops_workload_org=https://github.com/stilo-corp
+export TF_VAR_gitops_workload_repo=terraform-aws-eks-blueprints
+export TF_VAR_gitops_workload_revision=main
+```
