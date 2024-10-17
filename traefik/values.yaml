@@ -1,0 +1,33 @@
+ports:
+  web:
+    redirectTo:
+      port: websecure
+      priority: 10
+  websecure:
+    http3:
+      enabled: true
+    advertisedPort: 4443
+    tls:
+      enabled: true
+ingressRoute:
+  dashboard:
+    enabled: false
+service:
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: traefik.stilo.ca #add multiple separated with commas: rabbitmq.stilo.ca, postgres.stilo.ca
+    service.beta.kubernetes.io/aws-load-balancer-type: external
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:us-east-1:529088285154:certificate/d30c4b6b-c8f9-4664-9c7f-7a8fff8f657f #5
+    service.beta.kubernetes.io/load-balancer-source-ranges: 0.0.0.0/0
+globalArguments:
+  - "--api.insecure=false"
+logs:
+  general:
+    level: INFO
+  access:
+    enabled: false
+
+rbac:
+  enabled: true
