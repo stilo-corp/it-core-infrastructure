@@ -33,3 +33,10 @@ output "access_argocd" {
     echo "ArgoCD URL: https://$(kubectl get svc -n argocd argo-cd-argocd-server -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
     EOT
 }
+
+# output "oidc_provider" {
+#   description = "OIDC Provider"
+#   value       = <<-EOT
+#     aws eks describe-cluster --name ${module.eks.cluster_name} --region ${local.region} --query "cluster.identity.oidc.issuer" --output text
+#     EOT
+# }

@@ -12,6 +12,9 @@ data "aws_availability_zones" "available" {
   }
 }
 
+data "aws_eks_cluster" "gitops_cluster" {
+  name = var.cluster_name
+}
 provider "helm" {
   kubernetes {
     host                   = module.eks.cluster_endpoint
@@ -39,13 +42,15 @@ provider "kubernetes" {
 }
 
 locals {
-  name   = "gitops-it-core"
-  region = var.region
+  name       = var.cluster_name
+  region     = var.region
+  account_id = data.aws_caller_identity.current.account_id
 
   cluster_version = var.kubernetes_version
 
-  vpc_cidr = var.vpc_cidr
-  azs      = slice(data.aws_availability_zones.available.names, 0, 3)
+  vpc_cidr      = var.vpc_cidr
+  azs           = slice(data.aws_availability_zones.available.names, 0, 3)
+  oidc_provider = replace(data.aws_eks_cluster.gitops_cluster.identity[0].oidc[0].issuer, "https://", "")
 
   gitops_addons_url      = "${var.gitops_addons_org}/${var.gitops_addons_repo}"
   gitops_addons_basepath = var.gitops_addons_basepath
@@ -56,7 +61,6 @@ locals {
   gitops_workload_basepath = var.gitops_workload_basepath
   gitops_workload_path     = var.gitops_workload_path
   gitops_workload_revision = var.gitops_workload_revision
-
   aws_addons = {
     enable_cert_manager                          = try(var.addons.enable_cert_manager, false)
     enable_aws_efs_csi_driver                    = try(var.addons.enable_aws_efs_csi_driver, false)
@@ -126,6 +130,11 @@ locals {
       workload_repo_basepath = local.gitops_workload_basepath
       workload_repo_path     = local.gitops_workload_path
       workload_repo_revision = local.gitops_workload_revision
+    },
+    {
+      external_dns_iam_role_arn = aws_iam_role.external_dns_role.arn
+      eks_cluster_domain        = var.external_dns.eks_cluster_domain
+      external_dns_policy       = var.external_dns.external_dns_policy
     }
   )
 
@@ -133,6 +142,69 @@ locals {
     Blueprint  = local.name
     GithubRepo = "github.com/stilo-corp/it-core-infrastructure"
   }
+}
+
+
+################################################################################
+# IAM Policies & Roles
+################################################################################
+
+resource "aws_iam_policy" "route53_policy" {
+  name        = "Route53Policy"
+  description = "IAM policy to allow Route53 actions by ExternalDNS"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "route53:ChangeResourceRecordSets"
+        ]
+        Resource = [
+          "arn:aws:route53:::hostedzone/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "route53:ListHostedZones",
+          "route53:ListResourceRecordSets",
+          "route53:ListTagsForResource"
+        ]
+        Resource = [
+          "*"
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role" "external_dns_role" {
+  name = "ExternalDNSRole"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Federated = "arn:aws:iam::${local.account_id}:oidc-provider/${local.oidc_provider}"
+        }
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Condition = {
+          StringEquals = {
+            "${local.oidc_provider}:sub" = "system:serviceaccount:external-dns:external-dns-sa"
+          }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy_attachment" "attach_route53_policy" {
+  name       = "attachRoute53Policy"
+  roles      = [aws_iam_role.external_dns_role.name]
+  policy_arn = aws_iam_policy.route53_policy.arn
 }
 
 ################################################################################

@@ -32,7 +32,11 @@ See the appendix section [Fork GitOps Repositories](#fork-gitops-repositories) f
 
 ## Deploy the EKS Cluster
 
+TODO:: verify these don't need to be run independently
 Initialize Terraform and deploy the EKS cluster:
+terraform apply -target="aws_iam_policy.route53_policy" -auto-approve
+terraform apply -target="aws_iam_role.external_dns_role" -auto-approve
+
 
 ```shell
 terraform init
@@ -195,7 +199,7 @@ echo "ArgoCD URL: https://$(kubectl get svc -n argocd argo-cd-argocd-server -o j
 Deploy a sample application located in [k8s/game-2048.yaml](k8s/game-2048.yaml) using ArgoCD:
 
 ```shell
-kubectl apply -f bootstrap/workloads.yaml
+kubectl apply -f argocd/bootstrap/workloads.yaml
 ```
 
 ### Monitor GitOps Progress for Workloads
@@ -324,6 +328,117 @@ kube-system   kube-proxy-lz2dc                                            1m    
 kube-system   kube-proxy-pd2lm                                            1m           12Mi
 kube-system   metrics-server-5b76987ff-5g1sv                              4m           17Mi
 ```
+
+
+## Traefik
+
+
+### AWS Certificate Manager (ACM)
+
+If there isn't already an SSL certificate created in ACM, create one with the following domains:
+
+```text
+stilo.ca
+*stilo.ca
+
+stilo.com
+*stilo.com
+
+omnimark.com
+*.omnimark.com
+```
+
+Retrieve the ARN for the certificate and add it to `service.beta.kubernetes.io/aws-load-balancer-ssl-cert` in `traefik/values.yaml`:
+```text
+service.beta.kubernetes.io/aws-load-balancer-ssl-cert: <YOUR_CERTIFICATE_ARN> 
+```
+
+
+### Install traefik
+
+```shell
+helm repo add traefik https://helm.traefik.io/traefik
+helm install traefik traefik/traefik --create-namespace --namespace=traefik --values=traefik/values.yaml
+```
+
+If you need to re-apply/update values:
+```shell
+helm upgrade --namespace=traefik traefik traefik/traefik --values=traefik/values.yaml
+```
+
+Check the status of the traefik ingress controller service
+```shell
+kubectl get svc --all-namespaces -o wide
+```
+
+We should see traefik with the specified IP:
+```text
+NAMESPACE        NAME              TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                      AGE     SELECTOR
+default          kubernetes        ClusterIP      10.43.0.1       <none>        443/TCP                      7h15m   <none>
+kube-system      kube-dns          ClusterIP      10.43.0.10      <none>        53/UDP,53/TCP,9153/TCP       7h15m   k8s-app=kube-dns
+kube-system      metrics-server    ClusterIP      10.43.231.98    <none>        443/TCP                      7h15m   k8s-app=metrics-server
+metallb-system   webhook-service   ClusterIP      10.43.14.32     <none>        443/TCP                      7h15m   component=controller
+traefik          traefik           LoadBalancer   10.43.194.241   10.0.10.226   80:32706/TCP,443:30459/TCP   8s      app.kubernetes.io/instance=traefik-traefik,app.kubernetes.io/name=traefik
+```
+Get all pods in traefik namespace
+```shell
+kubectl get pods --namespace traefik
+```
+We should see pods in the traefik namespace
+```text
+    NAME                       READY   STATUS    RESTARTS   AGE
+    traefik-68fbbb866d-9w44r   1/1     Running   0          54s
+    traefik-68fbbb866d-f7nvd   1/1     Running   0          54s
+    traefik-68fbbb866d-pd997   1/1     Running   0          54s
+```
+
+### middleware
+
+Apply middleware
+```shell
+    kubectl apply -f traefik/default-headers.yaml
+```
+Get middleware
+```shell
+    kubectl get middleware
+```
+
+We should see our headers
+```text
+NAME              AGE
+default-headers   25s
+```
+### dashboard
+
+Install htpassword
+```shell
+sudo apt-get update
+sudo apt-get install apache2-utils
+```
+Generate a credential / password that’s base64 encoded (replace {TraefikPassword} with a password)
+```shell
+htpasswd -nb admin {TraefikPassword} | openssl base64
+```
+Apply secret
+
+Update the data->users field in dashboard/secret-dashboard.yaml with the bas64 encoded password from the previous step, then apply it: 
+
+    kubectl apply -f traefik/dashboard/secret-dashboard.yaml
+
+Get secret
+
+    kubectl get secrets --namespace traefik
+
+Apply middleware
+
+    kubectl apply -f traefik/dashboard/middleware.yaml
+
+Apply dashboard
+
+    kubectl apply -f traefik/dashboard/ingress.yaml
+
+Visit https://traefik.stilo.ca
+
 
 ## Destroy the EKS Cluster
 

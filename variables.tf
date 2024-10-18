@@ -13,14 +13,32 @@ variable "kubernetes_version" {
   type        = string
   default     = "1.31"
 }
+
+variable "cluster_name" {
+  description = "gitops-it-core cluster name"
+  type        = string
+  default     = "gitops-it-core"
+}
+
 variable "addons" {
   description = "Kubernetes addons"
   type        = any
   default = {
     enable_aws_load_balancer_controller = true
     enable_metrics_server               = true
+    enable_external_dns                 = true
   }
 }
+
+variable "external_dns" {
+  description = "ExternalDNS"
+  type        = any
+  default = {
+    eks_cluster_domain  = "stilo.ca"
+    external_dns_policy = "upsert-only"
+  }
+}
+
 # Addons Git
 variable "gitops_addons_org" {
   description = "Git repository org/user contains for addons"
