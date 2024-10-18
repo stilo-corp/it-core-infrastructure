@@ -424,8 +424,9 @@ Commit to git to have argocd pickup the changes and apply them.
 
 Visit https://traefik.stilo.ca
 
-#### Traefik troubleshooting
+## Troubleshooting
 
+### Traefik
 Check the logs:
 ```shell
 kubectl logs -f traefik-PODNAME -n traefik
@@ -434,6 +435,11 @@ kubectl logs -f traefik-PODNAME -n traefik
 Restart traefik:
 ```shell
 kubectl rollout restart deployment traefik -n traefik
+```
+
+### launch a pod to do internal testing
+```shell
+kubectl run -i --tty --rm debug --image=busybox --restart=Never -- sh
 ```
 
 ## Destroy the EKS Cluster

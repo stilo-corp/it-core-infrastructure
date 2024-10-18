@@ -56,10 +56,10 @@ deployment:
 providers:
   kubernetesCRD:
     enabled: true
-    ingressClass: traefik-external, traefik-internal
+    ingressClass: traefik-external
     allowExternalNameServices: true
   kubernetesIngress:
-    ingressClass: traefik-external, traefik-internal
+    ingressClass: traefik-external
     enabled: true
     allowExternalNameServices: true
     publishedService:
