@@ -1,41 +1,43 @@
+#1
 apiVersion: v1
 kind: Secret
 metadata:
-  name: traefik-dashboard-auth
+  name: dashboard-basic-auth-creds
   namespace: traefik
-type: Opaque
-data:
-  users: YWRtaW46JGFwcjEkQmFHUU56NTckeGJ6enFVTmp2L2U4Q1hQUy5LdVpULgoK
+type: kubernetes.io/basic-auth
+stringData:
+  username: admin
+  password: admin
 
 ---
+
+#2
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
-  name: traefik-dashboard-basicauth
+  name: dashboard-basic-auth
   namespace: traefik
 spec:
   basicAuth:
-    secret: traefik-dashboard-auth
+    secret: dashboard-basic-auth-creds
 
----    
+---
+
+#3
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: traefik-dashboard
+  name: dashboard
   namespace: traefik
-  annotations: 
-    kubernetes.io/ingress.class: traefik-external
 spec:
   entryPoints:
     - traefik
   routes:
-    - match: Host(`traefik.stilo.ca`)
-      kind: Rule
+    - kind: Rule
+      match: Host(`traefik.stilo.ca`) #4
       middlewares:
-        - name: traefik-dashboard-basicauth
+        - name: dashboard-basic-auth
           namespace: traefik
       services:
-        - name: api@internal
-          kind: TraefikService
-
-
+        - kind: TraefikService
+          name: api@internal

@@ -6,7 +6,9 @@ ports:
   websecure:
     http3:
       enabled: true
-    advertisedPort: 4443
+    port: 4443
+    exposedPort: 443
+    protocol: TCP
     tls:
       enabled: true
   traefik:
@@ -20,9 +22,9 @@ ingressRoute:
     enabled: false
 service:
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: traefik.stilo.ca #add multiple separated with commas: rabbitmq.stilo.ca, postgres.stilo.ca
+    external-dns.alpha.kubernetes.io/hostname: traefik.stilo.ca, game-2048.stilo.ca #add multiple separated with commas: rabbitmq.stilo.ca, postgres.stilo.ca
     service.beta.kubernetes.io/aws-load-balancer-type: external
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443, 9000"
     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
     service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
     service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:us-east-1:529088285154:certificate/d30c4b6b-c8f9-4664-9c7f-7a8fff8f657f # TODO:: pull dynamically or from secrets
@@ -37,3 +39,12 @@ logs:
 
 rbac:
   enabled: true
+
+
+deployment:
+  enabled: true
+  replicas: 1 # TODO:: bump up to 3
+  annotations: {}
+  podAnnotations: {}
+  additionalContainers: []
+  initContainers: []
