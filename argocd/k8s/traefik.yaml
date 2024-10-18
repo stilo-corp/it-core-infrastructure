@@ -86,7 +86,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: helloworld
-  namespace: test
+  namespace: default
   annotations:
 #    kubernetes.io/ingress.class: traefik # can't set if ingressClassName is set
 spec:
