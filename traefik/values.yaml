@@ -9,10 +9,14 @@ ports:
     port: 4443
     exposedPort: 443
     protocol: TCP
+    expose: 
+      enabled: true # TODO:: does this do anything?
     tls:
       enabled: true
   traefik:
     port: 9000
+    expose: 
+      enabled: true
     exposedPort: 9000
     protocol: TCP
     tls:
