@@ -9,6 +9,12 @@ ports:
     advertisedPort: 4443
     tls:
       enabled: true
+  traefik:
+    port: 9000
+    exposedPort: 9000
+    protocol: TCP
+    tls:
+      enabled: false
 ingressRoute:
   dashboard:
     enabled: false
