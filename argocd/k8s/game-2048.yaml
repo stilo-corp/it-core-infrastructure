@@ -54,7 +54,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`game-2048.leroux.red`)
+    - match: Host(`game-2048.stilo.ca`)
       kind: Rule
       services:
         - name: nginx
