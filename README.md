@@ -415,27 +415,12 @@ Install htpassword
 sudo apt-get update
 sudo apt-get install apache2-utils
 ```
-Generate a credential / password that’s base64 encoded (replace {TraefikPassword} with a password)
+Generate a credential / password that’s base64 encoded (replace {TraefikPassword} with a password) and update `argocd/k8s/traefik.yaml`:
 ```shell
 htpasswd -nb admin {TraefikPassword} | openssl base64
 ```
-Apply secret
 
-Update the data->users field in dashboard/secret-dashboard.yaml with the bas64 encoded password from the previous step, then apply it: 
-
-    kubectl apply -f traefik/dashboard/secret-dashboard.yaml
-
-Get secret
-
-    kubectl get secrets --namespace traefik
-
-Apply middleware
-
-    kubectl apply -f traefik/dashboard/middleware.yaml
-
-Apply dashboard
-
-    kubectl apply -f traefik/dashboard/ingress.yaml
+Commit to git to have argocd pickup the changes and apply them.
 
 Visit https://traefik.stilo.ca
 
