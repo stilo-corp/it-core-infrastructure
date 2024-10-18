@@ -91,3 +91,13 @@ spec:
   ingressClassName: traefik-external
   rules:
   - host: test.stilo.ca
+    
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  annotations:
+    ingressclass.kubernetes.io/is-default-class: "false"
+  name: traefik-internal
+  spec:
+    controller: traefik.io/ingress-controller
