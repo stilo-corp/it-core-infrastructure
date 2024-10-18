@@ -101,5 +101,5 @@ metadata:
   annotations:
     ingressclass.kubernetes.io/is-default-class: "false"
   name: traefik-internal
-  spec:
-    controller: traefik.io/ingress-controller
+spec:
+  controller: traefik.io/ingress-controller
