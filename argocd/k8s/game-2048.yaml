@@ -32,8 +32,6 @@ kind: Service
 metadata:
   name: game-2048
   namespace: game-2048
-annotations:
-  external-dns.alpha.kubernetes.io/hostname: game-2048.stilo.ca
 spec:
   selector:
     app: game-2048
