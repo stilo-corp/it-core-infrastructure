@@ -86,9 +86,9 @@ metadata:
   name: helloworld
   namespace: default
   annotations:
-#    kubernetes.io/ingress.class: traefik # can't set if ingressClassName is set
+   kubernetes.io/ingress.class: traefik-external
 spec:
-  ingressClassName: traefik-external
+  # ingressClassName: traefik-external
   rules:
   - host: test.stilo.ca
     
