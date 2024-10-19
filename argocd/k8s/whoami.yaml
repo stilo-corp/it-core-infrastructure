@@ -42,7 +42,9 @@ metadata:
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web
     traefik.ingress.kubernetes.io/router.middlewares: traefik-basic-auth@kubernetescrd
+    kubernetes.io/ingress.class: traefik-external
 spec:
+  ingressClassName: traefik-external
   rules:
   - http:
       paths:
