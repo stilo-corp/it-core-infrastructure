@@ -430,6 +430,8 @@ Visit https://traefik.stilo.ca
 Check the logs:
 ```shell
 kubectl logs -f traefik-PODNAME -n traefik
+OR
+kubectl logs -l app.kubernetes.io/name=traefik -n traefik
 ```
 
 Restart traefik:

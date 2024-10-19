@@ -1,66 +1,79 @@
-ports:
-  web:
-    redirectTo:
-      port: websecure
-      priority: 10
-  websecure:
-    http3:
-      enabled: true
-    port: 4443
-    exposedPort: 443
-    protocol: TCP
-    expose: 
-      enabled: true # TODO:: does this do anything?
-    tls:
-      enabled: true
-  traefik:
-    port: 9000
-    expose: 
-      enabled: true
-    exposedPort: 9000
-    protocol: TCP
-    tls:
-      enabled: false
+# ports:
+#   web:
+#     redirectTo:
+#       port: websecure
+#       priority: 10
+#   websecure:
+#     http3:
+#       enabled: true
+#     port: 4443
+#     exposedPort: 443
+#     protocol: TCP
+#     expose: 
+#       enabled: true # TODO:: does this do anything?
+#     # tls:
+#     #   enabled: true
+#   # traefik:
+#   #   port: 9000
+#   #   expose: 
+#   #     enabled: true
+#   #   exposedPort: 9000
+#   #   protocol: TCP
+#   #   tls:
+#   #     enabled: false
+# ingressRoute:
+#   dashboard:
+#     enabled: false
+# service:
+#   annotations:
+#     external-dns.alpha.kubernetes.io/hostname: traefik.stilo.ca, game-2048.stilo.ca #add multiple separated with commas: rabbitmq.stilo.ca, postgres.stilo.ca
+#     service.beta.kubernetes.io/aws-load-balancer-type: external
+#     service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+#     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+#     service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+#     service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:us-east-1:529088285154:certificate/d30c4b6b-c8f9-4664-9c7f-7a8fff8f657f # TODO:: pull dynamically or from secrets
+#     service.beta.kubernetes.io/load-balancer-source-ranges: 0.0.0.0/0
+# globalArguments:
+#   - "--api.insecure=false"
+# logs:
+#   general:
+#     level: DEBUG
+#   access:
+#     enabled: false
+
+# rbac:
+#   enabled: true
+
+
+# deployment:
+#   enabled: true
+#   replicas: 1 # TODO:: bump up to 3
+#   annotations: {}
+#   podAnnotations: {}
+#   additionalContainers: []
+#   initContainers: []
+
+# providers:
+#   kubernetesCRD:
+#     enabled: true
+#     ingressClass: traefik-external
+#     allowExternalNameServices: true
+#   kubernetesIngress:
+#     ingressClass: traefik-external
+#     enabled: true
+#     allowExternalNameServices: true
+#     publishedService:
+#       enabled: false
+---
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+  fallbackApiVersion: v1
 ingressRoute:
   dashboard:
     enabled: false
 service:
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: traefik.stilo.ca, game-2048.stilo.ca #add multiple separated with commas: rabbitmq.stilo.ca, postgres.stilo.ca
-    service.beta.kubernetes.io/aws-load-balancer-type: external
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443, 9000"
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
-    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
-    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:us-east-1:529088285154:certificate/d30c4b6b-c8f9-4664-9c7f-7a8fff8f657f # TODO:: pull dynamically or from secrets
-    service.beta.kubernetes.io/load-balancer-source-ranges: 0.0.0.0/0
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
 globalArguments:
-  - "--api.insecure=false"
-logs:
-  general:
-    level: INFO
-  access:
-    enabled: false
-
-rbac:
-  enabled: true
-
-
-deployment:
-  enabled: true
-  replicas: 1 # TODO:: bump up to 3
-  annotations: {}
-  podAnnotations: {}
-  additionalContainers: []
-  initContainers: []
-
-providers:
-  kubernetesCRD:
-    enabled: true
-    ingressClass: traefik-external
-    allowExternalNameServices: true
-  kubernetesIngress:
-    ingressClass: traefik-external
-    enabled: true
-    allowExternalNameServices: true
-    publishedService:
-      enabled: false
+- "--api.insecure=true"
