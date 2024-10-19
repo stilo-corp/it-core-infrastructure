@@ -1,114 +1,42 @@
-# apiVersion: v1
-# kind: Secret
-# metadata:
-#   name: traefik-dashboard-auth
-#   namespace: traefik
-# type: Opaque
-# data:
-#   users: YWRtaW46JGFwcjEkQmFHUU56NTckeGJ6enFVTmp2L2U4Q1hQUy5LdVpULgoK
+# secret.yaml
+---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: traefik-dashboard-auth
+  name: basic-auth-creds
   namespace: traefik
 type: kubernetes.io/basic-auth
 stringData:
-  username: admin
-  password: mypassword
+  username: test
+  password: password
 
+# middleware.yaml
 ---
-apiVersion: traefik.io/v1alpha1
+apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
-  name: traefik-dashboard-basicauth
+  name: basic-auth
   namespace: traefik
 spec:
   basicAuth:
-    secret: traefik-dashboard-auth
-# ---
-# kind: Service
-# apiVersion: v1
-# metadata:
-#   labels:
-#     k8s-app: traefik
-#   name: traefik-dashboard
-  
-# spec:
-#   ports:
-#     - name: dashboard
-#       port: 9000
-#       targetPort: 9000
-#   selector:
-#     app.kubernetes.io/instance: traefik
-#     app.kubernetes.io/name: traefik
+    secret: basic-auth-creds
 
+# ingress-route.yaml
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: traefik-dashboard
-  namespace: traefik
-  labels:
-    k8s-app: traefik
-spec:
-  type: ClusterIP
-  selector:
-    app: traefik-dashboard
-  ports:
-    - protocol: TCP
-      port: 9000
-      targetPort: 9000
-
----    
-apiVersion: traefik.io/v1alpha1
+apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: traefik-dashboard
+  name: dashboard
   namespace: traefik
-  annotations: 
-    kubernetes.io/ingress.class: traefik
 spec:
   entryPoints:
-    - traefik
-  routes: # Host(`traefik.stilo.ca`)
+    - web
+  routes:
     - match: PathPrefix(`/dashboard`, `/dashboard/`) || PathPrefix(`/api`, `/api/`)
       kind: Rule
-      middlewares:
-        - name: traefik-dashboard-basicauth
-          namespace: traefik
       services:
         - name: api@internal
           kind: TraefikService
-
----
-apiVersion: networking.k8s.io/v1
-kind: IngressClass
-metadata:
-  name: traefik-external
-  annotations:
-    ingressclass.kubernetes.io/is-default-class: "false"
-spec:
-  controller: traefik.io/ingress-controller
-
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: helloworld
-  namespace: default
-  annotations:
-   kubernetes.io/ingress.class: traefik-external
-spec:
-  # ingressClassName: traefik-external
-  rules:
-  - host: test.stilo.ca
-    
----
-apiVersion: networking.k8s.io/v1
-kind: IngressClass
-metadata:
-  annotations:
-    ingressclass.kubernetes.io/is-default-class: "false"
-  name: traefik-internal
-spec:
-  controller: traefik.io/ingress-controller
+      middlewares:
+        - name: basic-auth
+          namespace: traefik
