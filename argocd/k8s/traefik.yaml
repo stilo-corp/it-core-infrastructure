@@ -31,8 +31,6 @@ metadata:
 spec:
   entryPoints:
     - traefik
-  tls:
-    enabled: true
   routes:
     - match: Host(`traefik.stilo.ca`) && PathPrefix(`/dashboard`, `/dashboard/`) || PathPrefix(`/api`, `/api/`)
       kind: Rule
@@ -42,3 +40,4 @@ spec:
       middlewares:
         - name: basic-auth
           namespace: traefik
+  tls: {}
