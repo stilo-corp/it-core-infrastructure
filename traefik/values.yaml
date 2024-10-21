@@ -3,26 +3,14 @@ ports:
     port: 8000
     exposedPort: 80
     protocol: TCP
-    # redirectTo:
+    # redirectTo: #TODO:: enable this redirect after testing is complete
       # port: websecure
       # priority: 10
   websecure:
     http3:
       enabled: true
-    port: 4443
+    port: 8443
     exposedPort: 443
-    protocol: TCP
-    expose: 
-      enabled: true # TODO:: does this do anything?
-    tls:
-      enabled: true
-
-  # NOTE: If the entryPoint named traefik is not configured, it will be automatically created on port 8080. https://doc.traefik.io/traefik/operations/api/ 
-  traefik:
-    port: 9000
-    expose: 
-      enabled: true
-    exposedPort: 9000
     protocol: TCP
     tls:
       enabled: true
@@ -39,8 +27,13 @@ service:
     service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:us-east-1:529088285154:certificate/d30c4b6b-c8f9-4664-9c7f-7a8fff8f657f # TODO:: pull dynamically or from secrets
     service.beta.kubernetes.io/load-balancer-source-ranges: 0.0.0.0/0
 globalArguments:
-  - "--api.insecure=true"
-  #Enable the API in insecure mode, which means that the API will be available directly on the entryPoint named traefik.
+  - "--api.dashboard=true" # enable for insecure dashboard - required for port forwarding to work
+  - "--api.insecure=true" # enable for insecure dashboard - required for port forwarding to work
+  - "--global.sendanonymoususage=false"
+  - "--global.checknewversion=false"
+additionalArguments:
+  - "--serversTransport.insecureSkipVerify=true"
+  - "--log.level=DEBUG"
 logs:
   general:
     level: DEBUG
@@ -65,7 +58,6 @@ providers:
     ingressClass: traefik-external
     allowExternalNameServices: true
   kubernetesIngress:
-    ingressClass: traefik-external
     enabled: true
     allowExternalNameServices: true
     publishedService:
