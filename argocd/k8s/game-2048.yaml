@@ -59,4 +59,6 @@ spec:
       services:
         - name: game-2048
           port: 80
+      middlewares:
+        - name: default-headers
   tls: {}  # Enable TLS
