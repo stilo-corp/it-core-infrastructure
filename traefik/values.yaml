@@ -61,7 +61,7 @@ providers:
     enabled: true
     allowExternalNameServices: true
     publishedService:
-      enabled: false
+      enabled: true
 
 
 # TESTING
