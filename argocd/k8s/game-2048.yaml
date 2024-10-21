@@ -52,7 +52,7 @@ metadata:
     kubernetes.io/ingress.class: traefik-external
 spec:
   entryPoints:
-    - websecure
+    - web
   routes:
     - match: Host(`game-2048.stilo.ca`)
       kind: Rule
