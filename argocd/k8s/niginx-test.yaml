@@ -79,6 +79,8 @@ metadata:
   annotations:
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
+  entryPoints:
+    - websecure
   tls:
   - hosts:
     - nginx.stilo.ca
