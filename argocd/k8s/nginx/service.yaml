@@ -4,6 +4,7 @@ kind: Service
 metadata:
   name: nginx
   namespace: default
+  
 spec:
   selector:
     app: nginx
