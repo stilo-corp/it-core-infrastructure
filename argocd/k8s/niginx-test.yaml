@@ -61,7 +61,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`nginx.stilo.ca`)
+    - match: Host(`nginx.stilo.ca`) && (PathPrefix(/)  
       kind: Rule
       services:
         - name: nginx

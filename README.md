@@ -459,7 +459,7 @@ kubectl describe svc traefik -n traefik
 #### Other 
 Check the logs:
 ```shell
-kubectl logs -f traefik-PODNAME -n traefik
+kubectl logs -f $(kubectl get pods --selector "app.kubernetes.io/name=traefik" -n traefik --output=name | sed 's|pod/||')  -n traefik
 OR
 kubectl logs -l app.kubernetes.io/name=traefik -n traefik
 ```
