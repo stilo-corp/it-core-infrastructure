@@ -78,6 +78,7 @@ metadata:
   namespace: nginx-test
   annotations:
     traefik.ingress.kubernetes.io/router.tls: "true"
+    kubernetes.io/ingress.class: traefik-external
 spec:
   entryPoints:
     - websecure
