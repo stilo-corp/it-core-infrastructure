@@ -14,8 +14,8 @@ ports:
     protocol: TCP
     expose: 
       enabled: true # TODO:: does this do anything?
-    # tls:
-    #   enabled: true
+    tls:
+      enabled: true
 
   # NOTE: If the entryPoint named traefik is not configured, it will be automatically created on port 8080. https://doc.traefik.io/traefik/operations/api/ 
   traefik:
@@ -25,7 +25,7 @@ ports:
     exposedPort: 9000
     protocol: TCP
     tls:
-      enabled: false
+      enabled: true
 ingressRoute:
   dashboard:
     enabled: false

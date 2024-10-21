@@ -427,6 +427,31 @@ Visit https://traefik.stilo.ca
 ## Troubleshooting
 
 ### Traefik
+
+#### Access issues to the dashboard
+
+Port forward the dashboard to localhost to test it's up and running:
+
+Describe the instance to find which port the dashboard is listening on:
+```shell
+kubectl get pods --namespace traefik
+kubectl describe pod traefik-PODNAME -n traefik
+```
+
+You should see something like this listed:
+```text
+--entryPoints.traefik.address=:9000/tcp
+--api.dashboard=true
+```
+
+Forward the dashboard port to your localhost:
+```shell
+kubectl port-forward traefik-PODNAME 8081:9000 -n traefik
+```
+
+You should now be able to access the dashboard at http://localhost:8081/dashboard
+
+#### Other 
 Check the logs:
 ```shell
 kubectl logs -f traefik-PODNAME -n traefik

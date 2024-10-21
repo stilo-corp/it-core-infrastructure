@@ -30,9 +30,11 @@ metadata:
   namespace: traefik
 spec:
   entryPoints:
-    - web
+    - traefik
+  tls:
+    enabled: true
   routes:
-    - match: PathPrefix(`/dashboard`, `/dashboard/`) || PathPrefix(`/api`, `/api/`)
+    - match: Host(`traefik.stilo.ca`) && PathPrefix(`/dashboard`, `/dashboard/`) || PathPrefix(`/api`, `/api/`)
       kind: Rule
       services:
         - name: api@internal
