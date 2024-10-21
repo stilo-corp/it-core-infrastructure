@@ -61,4 +61,4 @@ spec:
           port: 80
       # middlewares:
       #   - name: default-headers
-  # tls: {}  # Enable TLS
+  tls: {}  # Enable TLS
