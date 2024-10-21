@@ -22,6 +22,7 @@ metadata:
   namespace: default
   labels:
     app: nginx
+    app.kubernetes.io/name: nginx
 spec:
   replicas: 3
   progressDeadlineSeconds: 600
