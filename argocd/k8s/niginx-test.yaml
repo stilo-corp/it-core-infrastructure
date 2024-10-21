@@ -62,16 +62,11 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`www.nginx.stilo.ca`)
-      kind: Rule
-      services:
-        - name: nginx
-          port: 80
     - match: Host(`nginx.stilo.ca`)
       kind: Rule
       services:
         - name: nginx
           port: 80
-      middlewares:
-        - name: default-headers
-  tls: {}
+      # middlewares:
+      #   - name: default-headers
+  # tls: {}
