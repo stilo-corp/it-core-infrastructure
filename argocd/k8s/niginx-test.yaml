@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nginx
-  namespace: default
+  namespace: nginx-test
   annotations:
     external-dns.alpha.kubernetes.io/hostname: nginx.stilo.ca
 spec:
@@ -18,7 +18,7 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: nginx
-  namespace: default
+  namespace: nginx-test
   labels:
     app.kubernetes.io/name: nginx
 spec:
@@ -44,7 +44,7 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: nginx
-  namespace: default
+  namespace: nginx-test
   annotations: 
     kubernetes.io/ingress.class: traefik-external
 spec:
