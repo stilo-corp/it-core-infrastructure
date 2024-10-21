@@ -47,7 +47,7 @@ spec:
   ports:
   - name: http
     targetPort: 80
-    port: 80
+    port: 443
 
 ---
 apiVersion: traefik.io/v1alpha1
