@@ -51,7 +51,7 @@ metadata:
     kubernetes.io/ingress.class: traefik-external
 spec:
   entryPoints:
-    - websecure
+    - web
   routes:
     - match: Host(`www.nginx.stilo.ca`)
       kind: Rule
