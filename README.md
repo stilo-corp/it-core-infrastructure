@@ -434,8 +434,7 @@ Port forward the dashboard to localhost to test it's up and running:
 
 Describe the instance to find which port the dashboard is listening on:
 ```shell
-kubectl get pods --namespace traefik
-kubectl describe pod traefik-PODNAME -n traefik
+kubectl describe pod $(kubectl get pods --selector "app.kubernetes.io/name=traefik" -n traefik --output=name | sed 's|pod/||') -n traefik
 ```
 
 You should see something like this listed:
@@ -446,10 +445,10 @@ You should see something like this listed:
 
 Forward the dashboard port to your localhost:
 ```shell
-kubectl port-forward traefik-PODNAME 8081:9000 -n traefik
+kubectl port-forward $(kubectl get pods --selector "app.kubernetes.io/name=traefik" -n traefik --output=name | sed 's|pod/||') 9000:9000 -n traefik
 ```
 
-You should now be able to access the dashboard at http://localhost:8081/dashboard
+You should now be able to access the dashboard at http://localhost:9000/dashboard
 
 Describe the service to see if it's mapping correctly:
 
