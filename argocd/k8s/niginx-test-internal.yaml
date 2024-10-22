@@ -41,7 +41,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/name: nginx
+    app.kubernetes.io/name: nginx-internal
   ports:
   - name: http
     targetPort: 80
