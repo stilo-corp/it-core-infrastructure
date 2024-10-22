@@ -61,7 +61,7 @@ metadata:
     external-dns.alpha.kubernetes.io/hostname: nginx.stilo.ca
 spec:
   entryPoints:
-    - https-internal
+    - websecure
   routes:
     - match: Host(`nginx.stilo.ca`)  
       kind: Rule

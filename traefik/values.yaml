@@ -1,9 +1,8 @@
 ports:
   web:
-    # port: 8000
-    # exposedPort: 80
-    # protocol: TCP
-    redirectTo: #TODO:: enable this redirect after testing is complete
+    port: 8000
+    exposedPort: 80
+    redirectTo: 
       port: websecure
       priority: 10
   websecure:
@@ -11,7 +10,19 @@ ports:
       enabled: true
     port: 8443
     exposedPort: 443
-    protocol: TCP
+    tls:
+      enabled: true
+  http-internal:
+    port: 8100
+    exposedPort: 80
+    redirectTo: 
+      port: websecure
+      priority: 10
+  https-internal:
+    http3:
+      enabled: true
+    port: 8444
+    exposedPort: 443
     tls:
       enabled: true
 ingressClass:
@@ -24,7 +35,7 @@ ingressRoute:
 service:
   type: LoadBalancer
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: traefik.stilo.ca, nginx.stilo.ca #add multiple separated with commas: rabbitmq.stilo.ca, postgres.stilo.ca
+    external-dns.alpha.kubernetes.io/hostname: traefik.stilo.ca, nginx.stilo.ca, nginx-internal.stilo.ca, pihole-new.stilo.ca #add multiple separated with commas: rabbitmq.stilo.ca, postgres.stilo.ca
     service.beta.kubernetes.io/aws-load-balancer-type: external 
     service.beta.kubernetes.io/aws-load-balancer-ssl-ports: 443, websecure
     service.beta.kubernetes.io/aws-load-balancer-ssl-negotiation-policy: ELBSecurityPolicy-TLS13-1-2-2021-06
