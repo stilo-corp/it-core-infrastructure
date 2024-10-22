@@ -34,8 +34,8 @@ variable "external_dns" {
   description = "ExternalDNS"
   type        = any
   default = {
-    eks_cluster_domain  = "stilo.ca"
-    external_dns_policy = "upsert-only"
+    eks_cluster_domain  = "" # omit to process all available hosted zones
+    external_dns_policy = "sync"
   }
 }
 
