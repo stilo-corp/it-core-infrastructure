@@ -26,7 +26,7 @@ service:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: traefik.stilo.ca, game-2048.stilo.ca, nginx.stilo.ca #add multiple separated with commas: rabbitmq.stilo.ca, postgres.stilo.ca
     service.beta.kubernetes.io/aws-load-balancer-type: external #TODO:: or nlb? seems external is setting nlb...
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "websecure"
     service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
     service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "60"
     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
