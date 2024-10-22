@@ -38,8 +38,6 @@ kind: Service
 metadata:
   name: nginx
   namespace: nginx-test
-  # annotations:
-  #   external-dns.alpha.kubernetes.io/hostname: nginx.stilo.ca
 spec:
   type: ClusterIP
   selector:
@@ -57,8 +55,6 @@ metadata:
   namespace: nginx-test
   annotations: 
     kubernetes.io/ingress.class: traefik-external
-    # for creating record-set
-    external-dns.alpha.kubernetes.io/hostname: nginx.stilo.ca
 spec:
   entryPoints:
     - websecure
@@ -91,29 +87,3 @@ spec:
     customFrameOptionsValue: SAMEORIGIN
     customRequestHeaders:
       X-Forwarded-Proto: https
-# ---
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   name: secure-ingress
-#   namespace: nginx-test
-#   annotations:
-#     traefik.ingress.kubernetes.io/router.tls: "true"
-#     kubernetes.io/ingress.class: traefik-external
-# spec:
-#   entryPoints:
-#     - websecure
-#   tls:
-#   - hosts:
-#     - nginx.stilo.ca
-#   rules:
-#   - host: nginx.stilo.ca
-#     http:
-#       paths:
-#       - path: /
-#         pathType: Prefix
-#         backend:
-#           service:
-#             name: nginx
-#             port:
-#               number: 80
