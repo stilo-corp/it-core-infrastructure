@@ -31,8 +31,8 @@ service:
     service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:us-east-1:529088285154:certificate/d30c4b6b-c8f9-4664-9c7f-7a8fff8f657f # TODO:: pull dynamically or from secrets
     service.beta.kubernetes.io/load-balancer-source-ranges: 10.0.0.0/24
 globalArguments:
-  # - "--api.dashboard=true" # enable for insecure dashboard - required for port forwarding to work
-  # - "--api.insecure=true" # enable for insecure dashboard - required for port forwarding to work
+  - "--api.dashboard=true" # enable for insecure dashboard - required for port forwarding to work
+  - "--api.insecure=true" # enable for insecure dashboard - required for port forwarding to work
   - "--global.sendanonymoususage=false"
   - "--global.checknewversion=false"
 # additionalArguments:

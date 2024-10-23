@@ -34,7 +34,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`traefik.stilo.ca`)
+    - match: Host(`traefik-internal.stilo.ca`)
       kind: Rule
       middlewares:
         - name: traefik-internal-dashboard-basicauth
