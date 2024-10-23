@@ -2,9 +2,7 @@ ports:
   web:
     port: 8000
     exposedPort: 80
-    redirectTo: 
-      port: websecure
-      priority: 10
+    redirectTo: websecure
   websecure:
     http3:
       enabled: true
@@ -12,40 +10,24 @@ ports:
     exposedPort: 443
     tls:
       enabled: true
-#   http-internal:
-#     port: 8100
-#     exposedPort: 81
-#     redirectTo: 
-#       port: https-internal
-#       priority: 10
-#   https-internal:
-#     http3:
-#       enabled: true
-#     port: 8444
-#     exposedPort: 444
-#     tls:
-#       enabled: true
-# ingressClass:
-#   enabled: true
-#   isDefaultClass: false
-#   name: traefik-external
 ingressRoute:
   dashboard:
     enabled: false
 service:
   type: LoadBalancer
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: traefik.stilo.ca, nginx.stilo.ca, nginx-internal.stilo.ca, pihole-new.stilo.ca #add multiple separated with commas: rabbitmq.stilo.ca, postgres.stilo.ca
-    external-dns.alpha.kubernetes.io/ttl: "60" # TODO:: increase after testing complete
-    service.beta.kubernetes.io/aws-load-balancer-type: external 
+    external-dns.alpha.kubernetes.io/hostname: traefik-internal.stilo.ca, nginx-internal.stilo.ca, pihole-internal.stilo.ca #add multiple separated with commas: rabbitmq.stilo.ca, postgres.stilo.ca
+    external-dns.alpha.kubernetes.io/private: "true"
+    external-dns.alpha.kubernetes.io/ttl: "60"
+    # service.beta.kubernetes.io/aws-load-balancer-type: external 
     service.beta.kubernetes.io/aws-load-balancer-ssl-ports: 443, websecure
     service.beta.kubernetes.io/aws-load-balancer-ssl-negotiation-policy: ELBSecurityPolicy-TLS13-1-2-2021-06
     service.beta.kubernetes.io/aws-load-balancer-backend-protocol: ssl
     service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "60"
     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
-    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internal
     service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:us-east-1:529088285154:certificate/d30c4b6b-c8f9-4664-9c7f-7a8fff8f657f # TODO:: pull dynamically or from secrets
-    service.beta.kubernetes.io/load-balancer-source-ranges: 0.0.0.0/0
+    service.beta.kubernetes.io/load-balancer-source-ranges: 10.0.0.0/24
 globalArguments:
   # - "--api.dashboard=true" # enable for insecure dashboard - required for port forwarding to work
   # - "--api.insecure=true" # enable for insecure dashboard - required for port forwarding to work
@@ -70,12 +52,15 @@ deployment:
 providers:
   kubernetesCRD:
     enabled: true
-    ingressClass: traefik-external
+    ingressClass: traefik-internal
     allowExternalNameServices: true
   kubernetesIngress:
     enabled: true
     allowExternalNameServices: true
+    ingressClass: traefik-internal
     publishedService:
       enabled: true
+    # TODO:: The Kubernetes service to copy status from. When using third parties tools like External-DNS, this option can be used to copy the service loadbalancer.status (containing the service's endpoints IPs) to the ingresses.
+    # Format: namespace/servicename.
     ingressEndpoint:
-      publishedService: traefik/traefik-external
+      publishedService: traefik/traefik-internal

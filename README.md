@@ -359,11 +359,13 @@ service.beta.kubernetes.io/aws-load-balancer-ssl-cert: <YOUR_CERTIFICATE_ARN>
 ```shell
 helm repo add traefik https://helm.traefik.io/traefik
 helm install traefik traefik/traefik --create-namespace --namespace=traefik --version 24.0.0 --values=traefik/values.yaml
+helm install traefik-internal traefik/traefik --create-namespace --namespace=traefik --version 24.0.0 --values=traefik/values-internal.yaml
 ```
 
 If you need to re-apply/update values:
 ```shell
 helm upgrade --namespace=traefik traefik traefik/traefik --values=traefik/values.yaml
+helm upgrade --namespace=traefik traefik-internal traefik/traefik --values=traefik/values-internal.yaml
 ```
 
 Check the status of the traefik ingress controller service

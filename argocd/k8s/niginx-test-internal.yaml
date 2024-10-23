@@ -46,10 +46,10 @@ metadata:
   name: nginx
   namespace: internal
   annotations: 
-    kubernetes.io/ingress.class: traefik-external
+    kubernetes.io/ingress.class: traefik-internal
 spec:
   entryPoints:
-    - https-internal
+    - websecure
   routes:
     - match: Host(`nginx-internal.stilo.ca`)  
       kind: Rule
