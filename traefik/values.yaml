@@ -14,15 +14,15 @@ ports:
       enabled: true
   http-internal:
     port: 8100
-    exposedPort: 80
+    exposedPort: 81
     redirectTo: 
-      port: websecure
+      port: https-internal
       priority: 10
   https-internal:
     http3:
       enabled: true
     port: 8444
-    exposedPort: 443
+    exposedPort: 444
     tls:
       enabled: true
 ingressClass:
