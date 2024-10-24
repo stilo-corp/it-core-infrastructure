@@ -51,7 +51,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`nginx-internal.stilo.ca`)  
+    - match: Host(`nginx.int.stilo.ca`)  
       kind: Rule
       services:
         - name: nginx
