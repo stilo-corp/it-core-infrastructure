@@ -30,6 +30,8 @@ kind: Service
 metadata:
   name: nginx
   namespace: internal
+annotations:
+  external-dns.alpha.kubernetes.io/hostname: nginx-internal.stilo.ca
 spec:
   type: ClusterIP
   selector:
