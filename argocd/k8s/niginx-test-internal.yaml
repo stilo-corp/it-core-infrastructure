@@ -50,6 +50,7 @@ metadata:
   annotations: 
     kubernetes.io/ingress.class: traefik-internal
     external-dns.alpha.kubernetes.io/hostname: nginx-internal.stilo.ca
+    ingress.class: traefik-internal
 spec:
   entryPoints:
     - web
