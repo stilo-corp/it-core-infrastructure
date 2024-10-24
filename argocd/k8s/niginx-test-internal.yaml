@@ -30,8 +30,6 @@ kind: Service
 metadata:
   name: nginx
   namespace: internal
-  annotations:
-    external-dns.alpha.kubernetes.io/hostname: nginx-internal.stilo.ca
 spec:
   type: ClusterIP
   selector:
@@ -41,28 +39,51 @@ spec:
     targetPort: 80
     port: 80
 
+# ---
+# apiVersion: traefik.io/v1alpha1
+# kind: IngressRoute
+# metadata:
+#   name: nginx
+#   namespace: internal
+#   annotations: 
+#     kubernetes.io/ingress.class: traefik-internal
+#     external-dns.alpha.kubernetes.io/hostname: nginx-internal.stilo.ca
+# spec:
+#   entryPoints:
+#     - web
+#   routes:
+#     - match: Host(`nginx-internal.stilo.ca`)  
+#       kind: Rule
+#       services:
+#         - name: nginx
+#           port: 80
+#       middlewares:
+#         - name: default-headers
+#   tls: {}
 ---
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
   name: nginx
   namespace: internal
   annotations: 
     kubernetes.io/ingress.class: traefik-internal
-    external-dns.alpha.kubernetes.io/hostname: nginx-internal.stilo.ca
-    ingress.class: traefik-internal
 spec:
-  entryPoints:
-    - web
-  routes:
-    - match: Host(`nginx-internal.stilo.ca`)  
-      kind: Rule
-      services:
-        - name: nginx
-          port: 80
-      middlewares:
-        - name: default-headers
-  tls: {}
+  rules:
+    - host: nginx-internal.stilo.ca
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - nginx-internal.stilo.ca
+  traefik.ingress.kubernetes.io/router.middlewares: internal-default-headers@kubernetescrd
 
 ---
 apiVersion: traefik.io/v1alpha1 # traefik.io/v1alpha1 depreciated in Traefik v3
