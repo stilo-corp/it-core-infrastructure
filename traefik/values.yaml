@@ -36,6 +36,8 @@ service:
   type: LoadBalancer
   annotations:
     external-dns.alpha.kubernetes.io/hostname: traefik.stilo.ca, nginx.stilo.ca, pihole-new.stilo.ca #add multiple separated with commas: rabbitmq.stilo.ca, postgres.stilo.ca
+    external-dns.alpha.kubernetes.io/access: public
+    external-dns.alpha.kubernetes.io/private: "false"
     external-dns.alpha.kubernetes.io/ttl: "60" # TODO:: increase after testing complete
     service.beta.kubernetes.io/aws-load-balancer-type: external 
     service.beta.kubernetes.io/aws-load-balancer-ssl-ports: 443, websecure
