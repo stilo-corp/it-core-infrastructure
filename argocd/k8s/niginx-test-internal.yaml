@@ -49,16 +49,16 @@ metadata:
     kubernetes.io/ingress.class: traefik-internal
 spec:
   entryPoints:
-    - web
+    - websecure
   routes:
     - match: Host(`nginx-internal.stilo.ca`)  
       kind: Rule
       services:
         - name: nginx
           port: 80
-      # middlewares:
-        # - name: default-headers
-  # tls: {}
+      middlewares:
+        - name: default-headers
+  tls: {}
 
 ---
 apiVersion: traefik.io/v1alpha1 # traefik.io/v1alpha1 depreciated in Traefik v3
