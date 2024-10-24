@@ -32,7 +32,7 @@ metadata:
     kubernetes.io/ingress.class: traefik-internal
 spec:
   entryPoints:
-    - web
+    - websecure
   routes:
     - match: Host(`traefik-internal.stilo.ca`)
       kind: Rule
