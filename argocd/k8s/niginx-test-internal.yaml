@@ -83,7 +83,7 @@ spec:
   tls:
     - hosts:
         - nginx-internal.stilo.ca
-  traefik.ingress.kubernetes.io/router.middlewares: internal-default-headers@kubernetescrd
+  # traefik.ingress.kubernetes.io/router.middlewares: internal-default-headers@kubernetescrd
 
 ---
 apiVersion: traefik.io/v1alpha1 # traefik.io/v1alpha1 depreciated in Traefik v3
