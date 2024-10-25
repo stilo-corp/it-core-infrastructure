@@ -16,6 +16,7 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: nginx
+        environment: dev
     spec:
       containers:
       - name: nginx

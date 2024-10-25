@@ -23,6 +23,9 @@ service:
     external-dns.alpha.kubernetes.io/private: "true"
     external-dns.alpha.kubernetes.io/ttl: "60"
     # service.beta.kubernetes.io/aws-load-balancer-type: external 
+    service.beta.kubernetes.io/aws-load-balancer-internal: 0.0.0.0/0
+    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
+    
     service.beta.kubernetes.io/aws-load-balancer-ssl-ports: 443, websecure
     service.beta.kubernetes.io/aws-load-balancer-ssl-negotiation-policy: ELBSecurityPolicy-TLS13-1-2-2021-06
     service.beta.kubernetes.io/aws-load-balancer-backend-protocol: ssl
